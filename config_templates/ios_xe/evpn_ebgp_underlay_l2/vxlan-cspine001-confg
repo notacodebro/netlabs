@@ -1,0 +1,180 @@
+
+hostname vxlan-cspine001
+!
+!
+vrf definition Mgmt-vrf
+ !
+ address-family ipv4
+ exit-address-family
+ !
+ address-family ipv6
+ exit-address-family
+!
+aaa new-model
+!
+!
+aaa authorization exec default local 
+!
+!
+ip routing
+!
+!
+!
+!
+!
+ip multicast-routing 
+!
+ip dhcp pool webuidhcp
+!
+!
+!
+login on-success log
+
+!
+!
+license boot level network-advantage addon dna-advantage
+memory free low-watermark processor 180924
+!
+system mtu 8978
+diagnostic bootup level minimal
+!
+spanning-tree mode rapid-pvst
+spanning-tree extend system-id
+!
+redundancy
+ mode sso
+crypto engine compliance shield disable
+!
+!
+!
+!
+!
+lldp run
+!
+!
+policy-map system-cpp-policy
+!
+! 
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+interface Loopback0
+ ip address 1.1.1.1 255.255.255.255
+ ip pim sparse-mode
+!
+interface GigabitEthernet0/0
+ vrf forwarding Mgmt-vrf
+ ip address 172.17.250.1 255.255.254.0
+ negotiation auto
+ no cdp enable
+!
+interface GigabitEthernet1/0/1
+ no switchport
+ ip address 10.1.11.1 255.255.255.0
+ ip pim sparse-mode
+!
+interface GigabitEthernet1/0/2
+ no switchport
+ ip address 10.1.12.1 255.255.255.0
+ ip pim sparse-mode
+interface GigabitEthernet1/0/3
+ no cdp enable
+!
+interface GigabitEthernet1/0/4
+ no cdp enable
+!
+interface GigabitEthernet1/0/5
+ no cdp enable
+!
+interface GigabitEthernet1/0/6
+ no cdp enable
+!
+interface GigabitEthernet1/0/7
+ no cdp enable
+!
+interface GigabitEthernet1/0/8
+ no cdp enable
+!
+interface Vlan1
+ no ip address
+ shutdown
+!
+router bgp 200
+ bgp router-id 1.1.1.1
+ bgp log-neighbor-changes
+ no bgp default ipv4-unicast
+ no bgp default route-target filter
+ neighbor 10.1.11.2 remote-as 300
+ neighbor 10.1.12.2 remote-as 400
+ neighbor 11.11.11.11 remote-as 300
+ neighbor 11.11.11.11 ebgp-multihop 255
+ neighbor 11.11.11.11 update-source Loopback0
+ neighbor 22.22.22.22 remote-as 400
+ neighbor 22.22.22.22 ebgp-multihop 255
+ neighbor 22.22.22.22 update-source Loopback0
+ !
+ address-family ipv4
+  redistribute connected
+  neighbor 10.1.11.2 activate
+  neighbor 10.1.12.2 activate
+  maximum-paths 32
+ exit-address-family
+ !
+ address-family l2vpn evpn
+  neighbor 11.11.11.11 activate
+  neighbor 11.11.11.11 send-community both
+  neighbor 11.11.11.11 soft-reconfiguration inbound
+  neighbor 11.11.11.11 route-map evpn-unchanged out
+  neighbor 22.22.22.22 activate
+  neighbor 22.22.22.22 send-community both
+  neighbor 22.22.22.22 soft-reconfiguration inbound
+  neighbor 22.22.22.22 route-map evpn-unchanged out
+ exit-address-family
+!
+ip forward-protocol nd
+ip tcp selective-ack
+ip tcp mss 1460
+ip tcp window-size 131072
+ip http server
+ip http authentication local
+ip http secure-server
+ip pim rp-address 1.1.1.1
+ip route vrf Mgmt-vrf 0.0.0.0 0.0.0.0 172.17.250.100
+ip ssh bulk-mode 131072
+ip ssh version 2
+!
+!
+!
+!
+route-map evpn-unchanged permit 10 
+ set ip next-hop unchanged
+!
+!
+!
+!
+!
+control-plane
+ service-policy input system-cpp-policy
+!
+!
+line con 0
+ stopbits 1
+line vty 0 4
+ transport input ssh
+line vty 5 15
+ transport input ssh
+!
+!
+!
+!
+!
+!
+!
+end
