@@ -1,0 +1,144 @@
+service timestamps debug datetime msec
+service timestamps log datetime msec
+platform punt-keepalive disable-kernel-core
+!
+hostname vxlan-cleaf001
+!
+vrf definition Mgmt-vrf
+ !
+ address-family ipv4
+ exit-address-family
+ !
+ address-family ipv6
+ exit-address-family
+!
+ip routing
+!
+ip multicast-routing 
+!
+login on-success log
+!
+l2vpn evpn
+ logging peer state
+ replication-type static
+ router-id Loopback0
+!
+l2vpn evpn instance 100 vlan-based
+ encapsulation vxlan
+ route-target import 400:100
+ replication-type static
+!
+license boot level network-advantage addon dna-advantage
+!
+diagnostic bootup level minimal
+!
+spanning-tree mode rapid-pvst
+spanning-tree extend system-id
+!
+vlan configuration 500
+ member evpn-instance 100 vni 5000 
+vlan dot1q tag native 
+!
+lldp run
+!
+interface Loopback0
+ ip address 11.11.11.11 255.255.255.255
+ ip pim sparse-mode
+!
+interface GigabitEthernet0/0
+ vrf forwarding Mgmt-vrf
+ ip address 172.17.250.3 255.255.254.0
+ negotiation auto
+ no cdp enable
+!
+interface GigabitEthernet1/0/1
+ no switchport
+ ip address 10.1.11.2 255.255.255.0
+ ip pim sparse-mode
+!
+interface GigabitEthernet1/0/2
+ no switchport
+ ip address 10.1.21.2 255.255.255.0
+ ip pim sparse-mode
+!
+interface GigabitEthernet1/0/3
+!
+interface GigabitEthernet1/0/4
+ description **connection to UUT1-left
+ switchport access vlan 500
+!
+interface GigabitEthernet1/0/5
+ description **connection to UUT2-left
+ switchport access vlan 500
+!
+interface GigabitEthernet1/0/6
+!
+interface GigabitEthernet1/0/7
+!
+interface GigabitEthernet1/0/8
+!
+interface Vlan1
+ no ip address
+ shutdown
+!
+interface Vlan500
+ ip address 10.1.1.1 255.255.255.0
+!
+interface nve1
+ no ip address
+ source-interface Loopback0
+ host-reachability protocol bgp
+ member vni 5000 mcast-group 227.0.0.5
+!
+router bgp 300
+ bgp router-id interface Loopback0
+ bgp log-neighbor-changes
+ no bgp default ipv4-unicast
+ no bgp default route-target filter
+ neighbor 1.1.1.1 remote-as 200
+ neighbor 1.1.1.1 ebgp-multihop 255
+ neighbor 1.1.1.1 update-source Loopback0
+ neighbor 2.2.2.2 remote-as 200
+ neighbor 2.2.2.2 ebgp-multihop 255
+ neighbor 2.2.2.2 update-source Loopback0
+ neighbor 10.1.11.1 remote-as 200
+ neighbor 10.1.21.1 remote-as 200
+ !
+ address-family ipv4
+  network 11.11.11.11 mask 255.255.255.255
+  neighbor 10.1.11.1 activate
+  neighbor 10.1.11.1 soft-reconfiguration inbound
+  neighbor 10.1.21.1 activate
+  neighbor 10.1.21.1 soft-reconfiguration inbound
+  maximum-paths 10
+ exit-address-family
+ !
+ address-family l2vpn evpn
+  neighbor 1.1.1.1 activate
+  neighbor 1.1.1.1 send-community both
+  neighbor 1.1.1.1 soft-reconfiguration inbound
+  neighbor 2.2.2.2 activate
+  neighbor 2.2.2.2 send-community both
+  neighbor 2.2.2.2 soft-reconfiguration inbound
+ exit-address-family
+!
+ip forward-protocol nd
+ip tcp selective-ack
+ip tcp mss 1460
+ip tcp window-size 131072
+ip http server
+ip http authentication local
+ip http secure-server
+ip pim rp-address 12.12.12.12
+ip route vrf Mgmt-vrf 0.0.0.0 0.0.0.0 172.17.250.100
+ip ssh bulk-mode 131072
+ip ssh version 2
+!
+line con 0
+ stopbits 1
+line vty 0 4
+ transport input ssh
+line vty 5 15
+ transport input ssh
+!
+end
