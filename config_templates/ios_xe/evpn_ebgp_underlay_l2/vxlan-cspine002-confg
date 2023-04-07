@@ -1,5 +1,8 @@
-hostname vxlan-cspine002
+service timestamps debug datetime msec
+service timestamps log datetime msec
+platform punt-keepalive disable-kernel-core
 !
+hostname vxlan-cspine002
 !
 vrf definition Mgmt-vrf
  !
@@ -9,40 +12,15 @@ vrf definition Mgmt-vrf
  address-family ipv6
  exit-address-family
 !
-aaa new-model
-!
-!
-aaa authorization exec default local 
-!
-!
-aaa session-id common
-no process cpu extended history
-no process cpu autoprofile hog
-switch 1 provision c9kv-q200-8p
-!
-!
-!
-!
 ip routing
-!
-!
-!
-!
 !
 ip multicast-routing 
 !
 ip dhcp pool webuidhcp
 !
-!
-!
 login on-success log
 !
-!
-!
-!
-!
 license boot level network-advantage addon dna-advantage
-memory free low-watermark processor 180924
 !
 system mtu 8978
 diagnostic bootup level minimal
@@ -50,34 +28,15 @@ diagnostic bootup level minimal
 spanning-tree mode rapid-pvst
 spanning-tree extend system-id
 !
-!
-!
-redundancy
- mode sso
-crypto engine compliance shield disable
-!
-!
-!
-!
-!
 lldp run
-!
-!
-policy-map system-cpp-policy
-!
-! 
-!
-!
-!
-!
-!
-!
-!
-!
-!
 !
 interface Loopback0
  ip address 2.2.2.2 255.255.255.255
+ ip pim sparse-mode
+!
+interface Loopback1
+ ip address 12.12.12.12 255.255.255.255
+ ip pim sparse-mode
 !
 interface GigabitEthernet0/0
  vrf forwarding Mgmt-vrf
@@ -87,32 +46,25 @@ interface GigabitEthernet0/0
 !
 interface GigabitEthernet1/0/1
  no switchport
- ip address 10.1.21.1 255.255.255.0
+ ip address 10.1.22.1 255.255.255.0
  ip pim sparse-mode
- no cdp enable
 !
 interface GigabitEthernet1/0/2
  no switchport
- ip address 10.1.22.1 255.255.255.0
+ ip address 10.1.21.1 255.255.255.0
  ip pim sparse-mode
- no cdp enable
 !
 interface GigabitEthernet1/0/3
 !
 interface GigabitEthernet1/0/4
- no cdp enable
 !
 interface GigabitEthernet1/0/5
- no cdp enable
 !
 interface GigabitEthernet1/0/6
- no cdp enable
 !
 interface GigabitEthernet1/0/7
- no cdp enable
 !
 interface GigabitEthernet1/0/8
- no cdp enable
 !
 interface Vlan1
  no ip address
@@ -139,9 +91,6 @@ router bgp 200
   maximum-paths 32
  exit-address-family
  !
- address-family l2vpn vpls
- exit-address-family
- !
  address-family l2vpn evpn
   neighbor 11.11.11.11 activate
   neighbor 11.11.11.11 send-community both
@@ -160,36 +109,26 @@ ip tcp window-size 131072
 ip http server
 ip http authentication local
 ip http secure-server
-ip pim rp-address 1.1.1.1
+ip pim rp-address 12.12.12.12
+ip msdp peer 1.1.1.1 connect-source Loopback0 remote-as 200
+ip msdp cache-sa-state
+ip route 1.1.1.1 255.255.255.255 10.1.21.2
 ip route vrf Mgmt-vrf 0.0.0.0 0.0.0.0 172.17.250.100
 ip ssh bulk-mode 131072
 ip ssh version 2
 !
-!
-!
-!
 route-map evpn-unchanged permit 10 
  set ip next-hop unchanged
-!
-!
-!
-!
 !
 control-plane
  service-policy input system-cpp-policy
 !
-!
 line con 0
+ exec-timeout 0 0
  stopbits 1
 line vty 0 4
  transport input ssh
 line vty 5 15
  transport input ssh
-!
-!
-!
-!
-!
-!
 !
 end
