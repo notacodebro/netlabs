@@ -1,0 +1,78 @@
+hostname sr-p002
+username marc
+ group root-lr
+ group cisco-support
+ secret 10 $6$qsyxZ/iTTNrL4Z/.$B58a7Rz221vBd5TvwnXMJdZoMJ82vI/gG5DiEl25Rx0P3dh7pyPstdhkfJyaEeY1BNfHpB5Xr0iroemJAoNNv1
+!
+cdp
+call-home
+ service active
+ contact smart-licensing
+ profile CiscoTAC-1
+  active
+  destination transport-method http
+ !
+!
+interface Loopback0
+ ipv4 address 2.2.2.2 255.255.255.255
+!
+interface MgmtEth0/RP0/CPU0/0
+ ipv4 address 172.17.250.81 255.255.255.0
+!
+interface GigabitEthernet0/0/0/0
+ ipv4 address 10.1.22.1 255.255.255.252
+!
+interface GigabitEthernet0/0/0/1
+ ipv4 address 10.1.21.1 255.255.255.252
+ lldp
+ !
+!
+interface GigabitEthernet0/0/0/2
+ shutdown
+!
+interface GigabitEthernet0/0/0/3
+ shutdown
+!
+router static
+ address-family ipv4 unicast
+  0.0.0.0/0 172.17.250.100
+ !
+!
+router ospf underlay
+ network point-to-point
+ area 0.0.0.0
+  segment-routing forwarding mpls
+  segment-routing mpls
+  interface Loopback0
+  !
+  interface GigabitEthernet0/0/0/0
+  !
+  interface GigabitEthernet0/0/0/1
+  !
+ !
+!
+router bgp 100
+ address-family l2vpn evpn
+ !
+ neighbor 11.11.11.11
+  remote-as 100
+  update-source Loopback0
+  address-family l2vpn evpn
+   route-reflector-client
+  !
+ !
+ neighbor 22.22.22.22
+  remote-as 100
+  update-source Loopback0
+  address-family l2vpn evpn
+   route-reflector-client
+  !
+ !
+!
+mpls oam
+!
+lldp
+!
+ssh server logging
+ssh server v2
+end

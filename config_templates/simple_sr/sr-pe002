@@ -1,0 +1,81 @@
+hostname sr-pe002
+username marc
+ group root-lr
+ group cisco-support
+ secret 10 $6$24HyX0lYzctD8X0.$ZHHRTZBUlmLc3qYSstaR8bVV7pPajR365PlWYhArnfjetrjW5GvKV2hig1g4LRZudN7A57Vs.OhzWiVMeGVJG/
+!
+call-home
+ service active
+ contact smart-licensing
+ profile CiscoTAC-1
+  active
+  destination transport-method http
+ !
+!
+interface Loopback0
+ ipv4 address 22.22.22.22 255.255.255.255
+!
+interface MgmtEth0/RP0/CPU0/0
+ ipv4 address 172.17.250.83 255.255.255.0
+!
+interface GigabitEthernet0/0/0/0
+ ipv4 address 10.1.22.2 255.255.255.252
+!
+interface GigabitEthernet0/0/0/1
+ shutdown
+!
+interface GigabitEthernet0/0/0/2
+ shutdown
+!
+interface GigabitEthernet0/0/0/3
+ shutdown
+!
+interface GigabitEthernet0/0/0/4
+ l2transport
+ !
+!
+router static
+ address-family ipv4 unicast
+  0.0.0.0/0 172.17.250.100
+ !
+!
+router ospf underlay
+ network point-to-point
+ area 0.0.0.0
+  segment-routing forwarding mpls
+  segment-routing mpls
+  interface Loopback0
+   prefix-sid index 5
+  !
+  interface GigabitEthernet0/0/0/0
+  !
+  interface GigabitEthernet0/0/0/1
+  !
+ !
+!
+router bgp 100
+ bgp router-id 22.22.22.22
+ address-family l2vpn evpn
+ !
+ neighbor 2.2.2.2
+  remote-as 100
+  update-source Loopback0
+  address-family l2vpn evpn
+  !
+ !
+!
+l2vpn
+ xconnect group lab
+  p2p atob
+   interface GigabitEthernet0/0/0/4
+   neighbor evpn evi 1 target 1 source 2
+   !
+  !
+ !
+!
+mpls oam
+!
+lldp
+!
+ssh server vrf default
+end
