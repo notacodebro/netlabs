@@ -17,13 +17,16 @@ interface Loopback0
  ipv4 address 1.1.1.1 255.255.255.255
 !
 interface MgmtEth0/RP0/CPU0/0
+ vrf mgmt
  ipv4 address 172.17.250.80 255.255.255.0
 !
 interface GigabitEthernet0/0/0/0
- ipv4 address 10.1.22.1 255.255.255.252
+ ipv4 address 10.1.11.1 255.255.255.252
+ lldp
+ !
 !
 interface GigabitEthernet0/0/0/1
- ipv4 address 10.1.21.1 255.255.255.252
+ ipv4 address 10.1.12.1 255.255.255.252
  lldp
  !
 !
@@ -31,8 +34,7 @@ interface GigabitEthernet0/0/0/2
  shutdown
 !
 interface GigabitEthernet0/0/0/3
- shutdown
-!
+ ipv4 address 10.1.1.1 255.255.255.252
 router static
  address-family ipv4 unicast
   0.0.0.0/0 172.17.250.100
