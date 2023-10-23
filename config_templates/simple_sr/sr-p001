@@ -1,4 +1,4 @@
-hostname sr-p002
+hostname sr-p001
 username marc
  group root-lr
  group cisco-support
